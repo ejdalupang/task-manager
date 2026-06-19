@@ -237,6 +237,9 @@
     .btn-green:hover { background:#236040; }
     .btn-danger { background:transparent; color:#B04840; border:1.5px solid rgba(176,72,64,.3); }
     .btn-danger:hover { background:#B04840; color:#fff; border-color:#B04840; }
+    .field-sub-label { font:600 10px/1 'Inter',sans-serif; color:var(--muted); letter-spacing:.8px; text-transform:uppercase; margin-bottom:6px; }
+    .continuous-badge { display:inline-flex; align-items:center; gap:4px; font:600 10px/1 'Inter',sans-serif; letter-spacing:.6px; text-transform:uppercase; background:#F0FDF4; color:#16A34A; border:1px solid #BBF7D0; border-radius:4px; padding:3px 7px; }
+    input[type="date"].text-input { cursor:pointer; }
     .task-dots-btn { background:none; border:none; cursor:pointer; width:28px; height:28px; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:2px; transition:all .15s; opacity:0; }
     .desk-task-row:hover .task-dots-btn, .task-card:hover .task-dots-btn { opacity:1; }
     .task-dots-btn:hover { background:var(--bg); opacity:1; }
@@ -528,7 +531,7 @@
       <div class="field-row"><div class="field-label">Area</div><div class="domain-grid" id="mob-capture-domain-grid"></div></div>
       <div class="field-row"><div class="field-label">How long?</div><div class="dur-chips"><div class="dur-chip" onclick="pickDur(this)">15m</div><div class="dur-chip" onclick="pickDur(this)">30m</div><div class="dur-chip" onclick="pickDur(this)">1 h</div><div class="dur-chip on" onclick="pickDur(this)">1.5 h</div><div class="dur-chip" onclick="pickDur(this)">2 h</div><div class="dur-chip" onclick="pickDur(this)">3 h+</div></div></div>
       <div class="field-row"><div class="field-label">Priority</div><div class="dur-chips"><div class="dur-chip" onclick="pickDur(this)">High</div><div class="dur-chip on" onclick="pickDur(this)">Normal</div><div class="dur-chip" onclick="pickDur(this)">Low</div></div></div>
-      <div class="field-row"><div class="field-label">Deadline</div><input class="text-input" id="mob-task-deadline" placeholder="e.g. Friday, or June 20" value=""></div>
+      <div class="field-row"><div class="field-label">Timeline</div><div style="display:flex;gap:8px;"><div style="flex:1"><div class="field-sub-label">Start</div><input class="text-input" type="date" id="mob-task-start" style="font-size:14px;"></div><div style="flex:1"><div class="field-sub-label">End</div><input class="text-input" type="date" id="mob-task-end" style="font-size:14px;"></div></div></div>
       <div class="field-row"><div class="field-label">Notes <span style="font-weight:400;opacity:.5;">— optional</span></div><textarea class="text-input" id="mob-task-notes" placeholder="Context, links, reminders…" style="min-height:64px;resize:vertical;font-size:13px;"></textarea></div>
       <div class="field-row"><button class="btn btn-primary btn-full" onclick="mobSaveTask()">Save task →</button></div>
     </div>
@@ -753,9 +756,16 @@
     <div class="modal-header"><div><div class="modal-title" id="d-modal-title">New task</div><div class="modal-sub" id="d-modal-sub">Fill in the details</div></div><button class="modal-close" onclick="closeDeskModalForce()">✕</button></div>
     <div class="modal-body">
       <div id="d-parsed-wrap" style="display:none;margin-bottom:16px;"><div class="parsed-box" id="d-parsed-box"></div></div>
-      <div class="modal-grid" style="margin-bottom:20px;">
-        <div><div class="field-label">Task name</div><input class="text-input" id="d-task-name" placeholder="What do you need to do?" style="font-size:14px;"></div>
-        <div><div class="field-label">Deadline</div><input class="text-input" id="d-task-deadline" placeholder="e.g. Friday, 29 May" style="font-size:14px;"></div>
+      <div style="margin-bottom:20px;">
+        <div class="field-label">Task name</div>
+        <input class="text-input" id="d-task-name" placeholder="What do you need to do?" style="font-size:14px;">
+      </div>
+      <div style="margin-bottom:20px;">
+        <div class="field-label">Timeline</div>
+        <div class="modal-grid" style="margin-top:8px;">
+          <div><div class="field-sub-label">Start <span style="font-weight:400;opacity:.5;text-transform:none;letter-spacing:0;">— optional</span></div><input class="text-input" type="date" id="d-task-start" style="font-size:14px;"></div>
+          <div><div class="field-sub-label">End</div><input class="text-input" type="date" id="d-task-end" style="font-size:14px;"></div>
+        </div>
       </div>
       <div style="margin-bottom:20px;"><div class="field-label">Area</div><div class="domain-grid" id="desk-modal-domain-grid"></div></div>
       <div class="modal-grid" style="margin-bottom:20px;">
@@ -837,16 +847,12 @@
 
       <!-- Step 4: When -->
       <div class="dg-step" id="dgs4">
-        <div class="g-q" style="font-size:20px;letter-spacing:-0.5px;">When does it need to happen?</div>
-        <div class="g-hint">Deadline or preferred date.</div>
-        <div class="dur-chips" style="margin-bottom:14px;flex-wrap:wrap;">
-          <div class="dur-chip" onclick="pickDur(this)">Today</div>
-          <div class="dur-chip" onclick="pickDur(this)">Tomorrow</div>
-          <div class="dur-chip" onclick="pickDur(this)">This week</div>
-          <div class="dur-chip" onclick="pickDur(this)">Next week</div>
-          <div class="dur-chip" onclick="pickDur(this)">No rush</div>
+        <div class="g-q" style="font-size:20px;letter-spacing:-0.5px;">What's the timeline?</div>
+        <div class="g-hint">Set a start and end date — or just an end date.</div>
+        <div style="display:flex;gap:12px;margin-top:16px;">
+          <div style="flex:1"><div class="field-sub-label">Start <span style="font-weight:400;opacity:.5;text-transform:none;letter-spacing:0;">— optional</span></div><input class="g-input" type="date" id="dg-task-start" style="margin-top:6px;"></div>
+          <div style="flex:1"><div class="field-sub-label">End</div><input class="g-input" type="date" id="dg-task-end" style="margin-top:6px;"></div>
         </div>
-        <input class="g-input" type="text" placeholder="Or type a specific date…">
       </div>
 
       <!-- Step 5: Notes + Project -->
@@ -887,9 +893,21 @@
         <div class="field-label">Area</div>
         <div class="domain-grid" id="new-proj-area-grid"></div>
       </div>
-      <div>
+      <div style="margin-bottom:20px;">
         <div class="field-label">Goal <span style="font-weight:400;opacity:.5;">— optional</span></div>
         <input class="text-input" id="new-proj-desc" placeholder="What does success look like?" style="font-size:14px;">
+      </div>
+      <div>
+        <div class="field-label">Timeline</div>
+        <div class="modal-grid" style="margin-top:8px;" id="proj-date-fields">
+          <div><div class="field-sub-label">Start</div><input class="text-input" type="date" id="new-proj-start" style="font-size:14px;"></div>
+          <div><div class="field-sub-label">End</div><input class="text-input" type="date" id="new-proj-end" style="font-size:14px;"></div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;">
+          <input type="checkbox" id="new-proj-continuous" onchange="document.getElementById('proj-date-fields').style.opacity=this.checked?'.3':''">
+          <span style="font:600 12px/1 Inter,sans-serif;color:var(--text);">Continuous / Ongoing</span>
+          <span style="font:400 12px/1 Inter,sans-serif;color:var(--muted);">— no fixed end date</span>
+        </label>
       </div>
     </div>
     <div class="modal-footer">
@@ -1042,7 +1060,7 @@
   /* ── ADD TASK ── */
   function addTask(data){
     const tasks = loadTasks();
-    const t = { id:'task_'+Date.now(), name:data.name||'Untitled', area:data.area||'work', duration:data.duration||'', deadline:data.deadline||'', priority:data.priority||'normal', projectId:data.projectId||'', notes:data.notes||'', status:'active', createdAt:Date.now() };
+    const t = { id:'task_'+Date.now(), name:data.name||'Untitled', area:data.area||'work', duration:data.duration||'', startDate:data.startDate||'', endDate:data.endDate||'', deadline:data.deadline||'', priority:data.priority||'normal', projectId:data.projectId||'', notes:data.notes||'', status:'active', createdAt:Date.now() };
     tasks.unshift(t);
     saveTasks(tasks);
     // If assigned to a project, add as a subtask
@@ -1069,14 +1087,14 @@
     return proj ? `<span style="font:600 9px/1 'Inter',sans-serif;letter-spacing:1px;text-transform:uppercase;background:var(--bg);border:1px solid var(--border);padding:2px 6px;border-radius:4px;color:var(--muted);margin-left:6px;">${proj.name}</span>` : '';
   }
   function taskRowHTML(t){
-    const dl = t.deadline ? `<div class="tc-time">${t.deadline}</div>` : `<div class="tc-unsched">Unscheduled</div>`;
+    const tl=taskTimeline(t); const dl = tl ? `<div class="tc-time">${tl}</div>` : `<div class="tc-unsched">Unscheduled</div>`;
     const dn = t.status==='done'?'task-name-done':'';
     const cc = t.status==='done'?'on':'';
     const ct = t.status==='done'?'✓':'';
     return `<div class="desk-task-row tc-${t.area}"><div class="check ${cc}" onclick="toggleTask('${t.id}')">${ct}</div><div class="task-card-info"><div class="tc-domain">${aL(t.area)}${projLabel(t)}</div><div class="tc-name ${dn}">${t.name}</div>${dl}</div><button class="task-dots-btn" onclick="editTask('${t.id}')" title="Edit"><span></span><span></span><span></span></button></div>`;
   }
   function taskCardHTML(t){
-    const dl = t.deadline ? `<div class="tc-time">${t.deadline}</div>` : `<div class="tc-unsched">Unscheduled</div>`;
+    const tl=taskTimeline(t); const dl = tl ? `<div class="tc-time">${tl}</div>` : `<div class="tc-unsched">Unscheduled</div>`;
     const dn = t.status==='done'?'task-name-done':'';
     const cc = t.status==='done'?'on':'';
     const ct = t.status==='done'?'✓':'';
@@ -1118,7 +1136,12 @@
     days.forEach((d,i)=>{
       const isTd = d.getTime()===now.getTime();
       const dayFullName = _FULL[i];
+      const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       const dayTasks = tasks.filter(t=>{
+        if(t.endDate || t.startDate){
+          const s = t.startDate||t.endDate, e = t.endDate||t.startDate;
+          return dStr >= s && dStr <= e;
+        }
         if(!t.deadline) return false;
         const dl = t.deadline.toLowerCase();
         if(isTd && (dl==='today'||dl.startsWith('today'))) return true;
@@ -1131,7 +1154,7 @@
           const a = areas.find(x=>x.id===t.area);
           const col = a?a.color:'#888';
           const {bg,fg}=areaColors(col);
-          return `<div class="tblock"><div class="event" style="border-left:3px solid ${col};background:${bg};color:${fg};padding:10px 14px;border-radius:8px;cursor:pointer;" onclick="toggleTask('${t.id}')"><div class="ev-name">${escHtml(t.name)}</div><div class="ev-time" style="font:400 11px/1 Inter,sans-serif;opacity:.7;margin-top:4px;">${escHtml(t.deadline)}${t.duration?' · '+t.duration:''}</div></div></div>`;
+          return `<div class="tblock"><div class="event" style="border-left:3px solid ${col};background:${bg};color:${fg};padding:10px 14px;border-radius:8px;cursor:pointer;" onclick="toggleTask('${t.id}')"><div class="ev-name">${escHtml(t.name)}</div><div class="ev-time" style="font:400 11px/1 Inter,sans-serif;opacity:.7;margin-top:4px;">${escHtml(taskTimeline(t))}${t.duration?' · '+t.duration:''}</div></div></div>`;
         }).join('');
       }
     });
@@ -1178,11 +1201,11 @@
 
     function cardData(a){
       const at = tasks.filter(t=>t.area===a.id);
-      const next = at.find(t=>t.deadline)||at[0];
+      const next = at.find(t=>t.endDate||t.deadline)||at[0];
       return {
         count: at.length,
         name: next ? next.name : 'No tasks yet',
-        date: next ? (next.deadline||'Unscheduled') : '—'
+        date: next ? (taskTimeline(next)||'Unscheduled') : '—'
       };
     }
 
@@ -1210,8 +1233,8 @@
   function renderAll(){
     const tasks = loadTasks();
     const active = tasks.filter(t=>t.status!=='done');
-    const unscheduled = tasks.filter(t=>t.status!=='done'&&!t.deadline);
-    const todayTasks  = tasks.filter(t=>t.status!=='done'&&t.deadline&&t.deadline.toLowerCase().includes('today'));
+    const unscheduled = tasks.filter(t=>t.status!=='done'&&taskIsUnscheduled(t));
+    const todayTasks  = tasks.filter(t=>t.status!=='done'&&taskIsToday(t));
 
     /* desktop task list */
     const dtl = document.getElementById('d-tasks-list');
@@ -1298,7 +1321,7 @@
         ? p.tasks.map(t=>`<div class="proj-subtask ${t.done?'done':''}" onclick="toggleProjTask('${p.id}','${t.id}')"><div class="proj-subtask-dot">${t.done?'✓':''}</div><span>${escHtml(t.name)}</span></div>`).join('')
         : `<div style="font:400 12px/1 'Inter',sans-serif;color:var(--light);padding:4px 0;">No tasks yet — add some or try ✨ Suggest below</div>`;
       return `<div class="proj-card pc-${p.area}" data-pid="${p.id}">
-        <div class="proj-header"><div class="proj-name">${escHtml(p.name)}</div><span class="dbadge db-${p.area}">${aL(p.area)}</span></div>
+        <div class="proj-header"><div class="proj-name">${escHtml(p.name)}</div><div style="display:flex;gap:6px;align-items:center;">${p.continuous?'<span class="continuous-badge">● Ongoing</span>':((p.startDate||p.endDate)?`<span style="font:500 11px/1 Inter,sans-serif;color:var(--muted);">${p.startDate&&p.endDate?fmtDate(p.startDate)+' – '+fmtDate(p.endDate):(p.endDate?'Due '+fmtDate(p.endDate):fmtDate(p.startDate)+' →')}</span>`:'')}<span class="dbadge db-${p.area}">${aL(p.area)}</span></div></div>
         <div class="proj-progress"><div class="proj-bar" style="width:${pct}%;background:var(--${p.area});"></div></div>
         <div class="proj-subtasks">${subtasksHtml}</div>
         <div class="proj-footer"><span class="proj-stat">${done}/${total} done</span><span class="proj-stat" style="font-weight:700;">${pct}%</span></div>
@@ -1361,6 +1384,35 @@
       });
     });
   }
+
+  /* ── DATE HELPERS ── */
+  function fmtDate(iso){
+    if(!iso) return '';
+    const p=iso.split('-').map(Number);
+    return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][p[1]-1]+' '+p[2];
+  }
+  function taskTimeline(t){
+    if(t.startDate && t.endDate) return fmtDate(t.startDate)+' – '+fmtDate(t.endDate);
+    if(t.endDate) return fmtDate(t.endDate);
+    if(t.startDate) return fmtDate(t.startDate)+' →';
+    if(t.deadline) return t.deadline;
+    return '';
+  }
+  function isDateToday(iso){
+    if(!iso) return false;
+    const n=new Date(); const p=iso.split('-').map(Number);
+    return n.getFullYear()===p[0]&&n.getMonth()+1===p[1]&&n.getDate()===p[2];
+  }
+  function taskIsToday(t){
+    if(isDateToday(t.endDate)) return true;
+    if(t.startDate&&t.endDate){
+      const tod=new Date(); tod.setHours(0,0,0,0);
+      const s=new Date(t.startDate+'T00:00:00'), e=new Date(t.endDate+'T00:00:00');
+      return tod>=s&&tod<=e;
+    }
+    return !!(t.deadline&&t.deadline.toLowerCase().includes('today'));
+  }
+  function taskIsUnscheduled(t){ return !t.endDate&&!t.startDate&&!t.deadline; }
 
   /* ── DATE FORMATTER ── */
   function fmtNoteDate(d){
@@ -1525,7 +1577,8 @@
     if(!t) return;
     _editingTaskId = id;
     document.getElementById('d-task-name').value = t.name||'';
-    document.getElementById('d-task-deadline').value = t.deadline||'';
+    document.getElementById('d-task-start').value = t.startDate||'';
+    document.getElementById('d-task-end').value = t.endDate||'';
     document.getElementById('d-task-notes').value = t.notes||'';
     // Area
     document.querySelectorAll('#desk-modal-domain-grid .domain-opt').forEach(o=>{
@@ -1568,19 +1621,20 @@
     const area = areaEl ? areaEl.dataset.d : '';
     const durEl = document.querySelector('#d-overlay .modal-body .dur-chip.on');
     const duration = durEl ? durEl.textContent.trim() : '';
-    const deadline = document.getElementById('d-task-deadline').value.trim();
+    const startDate = document.getElementById('d-task-start').value;
+    const endDate = document.getElementById('d-task-end').value;
     const projectId = getSelectedProjId('d-proj-chips');
     const notes = document.getElementById('d-task-notes').value.trim();
     if(_editingTaskId){
       const tasks = loadTasks();
       const t = tasks.find(x=>x.id===_editingTaskId);
-      if(t){ Object.assign(t,{name,area,duration,deadline,projectId:projectId||null,notes}); }
+      if(t){ Object.assign(t,{name,area,duration,startDate,endDate,deadline:'',projectId:projectId||null,notes}); }
       saveTasks(tasks);
       closeDeskModalForce();
       renderAll();
       return;
     } else {
-      addTask({ name, area, duration, deadline, projectId, notes });
+      addTask({ name, area, duration, startDate, endDate, projectId, notes });
       document.getElementById('desk-input').value='';
       document.getElementById('desk-capture-wrap').classList.remove('has-content');
     }
@@ -1596,11 +1650,11 @@
     const area = areaEl ? areaEl.dataset.d : 'work';
     const durEl = document.querySelector('#dgs3 .dur-chip.on');
     const duration = durEl ? durEl.textContent.trim() : '';
-    const whenEl = document.querySelector('#dgs4 .dur-chip.on');
-    const deadline = whenEl ? whenEl.textContent.trim() : '';
+    const startDate = document.getElementById('dg-task-start')?.value||'';
+    const endDate = document.getElementById('dg-task-end')?.value||'';
     const projectId = getSelectedProjId('dg-proj-chips');
     const notes = document.getElementById('dg-notes-input')?.value.trim()||'';
-    addTask({ name, area, duration, deadline, projectId, notes });
+    addTask({ name, area, duration, startDate, endDate, projectId, notes });
     document.getElementById('desk-input').value = '';
     document.getElementById('desk-capture-wrap').classList.remove('has-content');
     closeDeskGuided();
@@ -1615,14 +1669,16 @@
     const area = areaEl ? areaEl.dataset.d : 'work';
     const durEl = document.querySelector('#s-capture .dur-chip.on');
     const duration = durEl ? durEl.textContent.trim() : '';
-    const deadline = document.querySelector('#s-capture input[type="text"]')?.value.trim()||'';
+    const startDate = document.getElementById('mob-task-start')?.value||'';
+    const endDate = document.getElementById('mob-task-end')?.value||'';
     const notes = document.getElementById('mob-task-notes')?.value.trim()||'';
-    addTask({ name, area, duration, deadline, notes });
+    addTask({ name, area, duration, startDate, endDate, notes });
     document.getElementById('mob-c-icon').textContent='✓';
     document.getElementById('mob-c-icon').style.background='#ECFDF5';
     document.getElementById('mob-c-title').textContent='Added!';
     document.getElementById('mob-c-sub').textContent=`"${name}" added to ${aL(area)}.`;
-    document.getElementById('mob-c-when').textContent=deadline||'Unscheduled';
+    const tl = (startDate&&endDate)?fmtDate(startDate)+' – '+fmtDate(endDate):(endDate?fmtDate(endDate):'');
+    document.getElementById('mob-c-when').textContent=tl||'Unscheduled';
     mShow('s-confirm');
   }
 
@@ -1687,7 +1743,8 @@
     document.getElementById('d-save-btn').textContent = 'Save task →';
     document.getElementById('d-delete-btn').style.display = 'none';
     document.getElementById('d-task-name').value = '';
-    document.getElementById('d-task-deadline').value = '';
+    document.getElementById('d-task-start').value = '';
+    document.getElementById('d-task-end').value = '';
     document.getElementById('d-task-notes').value = '';
     document.querySelectorAll('#desk-modal-domain-grid .domain-opt').forEach(o=>o.className='domain-opt');
     document.querySelectorAll('#d-overlay .modal-body .dur-chip').forEach(c=>c.classList.remove('on'));
@@ -1790,6 +1847,10 @@
   function openNewProjModal(){
     document.getElementById('new-proj-name').value = '';
     document.getElementById('new-proj-desc').value = '';
+    document.getElementById('new-proj-start').value = '';
+    document.getElementById('new-proj-end').value = '';
+    document.getElementById('new-proj-continuous').checked = false;
+    document.getElementById('proj-date-fields').style.opacity = '';
     document.querySelectorAll('#new-proj-area-grid .domain-opt').forEach(o=>o.className='domain-opt');
     document.getElementById('new-proj-overlay').classList.add('open');
     setTimeout(()=>document.getElementById('new-proj-name').focus(), 150);
@@ -1803,7 +1864,10 @@
     const areaEl = document.querySelector('#new-proj-area-grid .domain-opt[class*="on-"]');
     const area = areaEl ? areaEl.dataset.d : 'work';
     const projs = loadProjects();
-    projs.push({ id:'proj_'+Date.now(), name, area, notes:[], tasks:[] });
+    const continuous = document.getElementById('new-proj-continuous').checked;
+    const startDate = document.getElementById('new-proj-start').value;
+    const endDate = continuous ? '' : document.getElementById('new-proj-end').value;
+    projs.push({ id:'proj_'+Date.now(), name, area, continuous, startDate, endDate, notes:[], tasks:[] });
     saveProjects(projs);
     renderAll();
     closeNewProjModal();
