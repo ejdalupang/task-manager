@@ -762,10 +762,15 @@
       </div>
       <div style="margin-bottom:20px;">
         <div class="field-label">Timeline</div>
-        <div class="modal-grid" style="margin-top:8px;">
+        <div class="modal-grid" style="margin-top:8px;" id="task-date-fields">
           <div><div class="field-sub-label">Start <span style="font-weight:400;opacity:.5;text-transform:none;letter-spacing:0;">— optional</span></div><input class="text-input" type="date" id="d-task-start" style="font-size:14px;"></div>
           <div><div class="field-sub-label">End</div><input class="text-input" type="date" id="d-task-end" style="font-size:14px;"></div>
         </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;">
+          <input type="checkbox" id="d-task-continuous" onchange="document.getElementById('task-date-fields').style.opacity=this.checked?'.3':''">
+          <span style="font:600 12px/1 Inter,sans-serif;color:var(--text);">Continuous / Ongoing</span>
+          <span style="font:400 12px/1 Inter,sans-serif;color:var(--muted);">— no fixed end date</span>
+        </label>
       </div>
       <div style="margin-bottom:20px;"><div class="field-label">Area</div><div class="domain-grid" id="desk-modal-domain-grid"></div></div>
       <div class="modal-grid" style="margin-bottom:20px;">
@@ -1060,7 +1065,7 @@
   /* ── ADD TASK ── */
   function addTask(data){
     const tasks = loadTasks();
-    const t = { id:'task_'+Date.now(), name:data.name||'Untitled', area:data.area||'work', duration:data.duration||'', startDate:data.startDate||'', endDate:data.endDate||'', deadline:data.deadline||'', priority:data.priority||'normal', projectId:data.projectId||'', notes:data.notes||'', status:'active', createdAt:Date.now() };
+    const t = { id:'task_'+Date.now(), name:data.name||'Untitled', area:data.area||'work', duration:data.duration||'', startDate:data.startDate||'', endDate:data.endDate||'', continuous:data.continuous||false, deadline:data.deadline||'', priority:data.priority||'normal', projectId:data.projectId||'', notes:data.notes||'', status:'active', createdAt:Date.now() };
     tasks.unshift(t);
     saveTasks(tasks);
     // If assigned to a project, add as a subtask
@@ -1087,14 +1092,14 @@
     return proj ? `<span style="font:600 9px/1 'Inter',sans-serif;letter-spacing:1px;text-transform:uppercase;background:var(--bg);border:1px solid var(--border);padding:2px 6px;border-radius:4px;color:var(--muted);margin-left:6px;">${proj.name}</span>` : '';
   }
   function taskRowHTML(t){
-    const tl=taskTimeline(t); const dl = tl ? `<div class="tc-time">${tl}</div>` : `<div class="tc-unsched">Unscheduled</div>`;
+    const tl=taskTimeline(t); const dl = t.continuous ? `<div class="tc-time" style="color:#16A34A;">● Ongoing</div>` : tl ? `<div class="tc-time">${tl}</div>` : `<div class="tc-unsched">Unscheduled</div>`;
     const dn = t.status==='done'?'task-name-done':'';
     const cc = t.status==='done'?'on':'';
     const ct = t.status==='done'?'✓':'';
     return `<div class="desk-task-row tc-${t.area}"><div class="check ${cc}" onclick="toggleTask('${t.id}')">${ct}</div><div class="task-card-info"><div class="tc-domain">${aL(t.area)}${projLabel(t)}</div><div class="tc-name ${dn}">${t.name}</div>${dl}</div><button class="task-dots-btn" onclick="editTask('${t.id}')" title="Edit"><span></span><span></span><span></span></button></div>`;
   }
   function taskCardHTML(t){
-    const tl=taskTimeline(t); const dl = tl ? `<div class="tc-time">${tl}</div>` : `<div class="tc-unsched">Unscheduled</div>`;
+    const tl=taskTimeline(t); const dl = t.continuous ? `<div class="tc-time" style="color:#16A34A;">● Ongoing</div>` : tl ? `<div class="tc-time">${tl}</div>` : `<div class="tc-unsched">Unscheduled</div>`;
     const dn = t.status==='done'?'task-name-done':'';
     const cc = t.status==='done'?'on':'';
     const ct = t.status==='done'?'✓':'';
@@ -1392,6 +1397,7 @@
     return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][p[1]-1]+' '+p[2];
   }
   function taskTimeline(t){
+    if(t.continuous) return ''; // badge handled separately
     if(t.startDate && t.endDate) return fmtDate(t.startDate)+' – '+fmtDate(t.endDate);
     if(t.endDate) return fmtDate(t.endDate);
     if(t.startDate) return fmtDate(t.startDate)+' →';
@@ -1412,7 +1418,7 @@
     }
     return !!(t.deadline&&t.deadline.toLowerCase().includes('today'));
   }
-  function taskIsUnscheduled(t){ return !t.endDate&&!t.startDate&&!t.deadline; }
+  function taskIsUnscheduled(t){ return !t.continuous&&!t.endDate&&!t.startDate&&!t.deadline; }
 
   /* ── DATE FORMATTER ── */
   function fmtNoteDate(d){
@@ -1579,6 +1585,8 @@
     document.getElementById('d-task-name').value = t.name||'';
     document.getElementById('d-task-start').value = t.startDate||'';
     document.getElementById('d-task-end').value = t.endDate||'';
+    document.getElementById('d-task-continuous').checked = !!t.continuous;
+    document.getElementById('task-date-fields').style.opacity = t.continuous?'.3':'';
     document.getElementById('d-task-notes').value = t.notes||'';
     // Area
     document.querySelectorAll('#desk-modal-domain-grid .domain-opt').forEach(o=>{
@@ -1623,18 +1631,19 @@
     const duration = durEl ? durEl.textContent.trim() : '';
     const startDate = document.getElementById('d-task-start').value;
     const endDate = document.getElementById('d-task-end').value;
+    const continuous = document.getElementById('d-task-continuous').checked;
     const projectId = getSelectedProjId('d-proj-chips');
     const notes = document.getElementById('d-task-notes').value.trim();
     if(_editingTaskId){
       const tasks = loadTasks();
       const t = tasks.find(x=>x.id===_editingTaskId);
-      if(t){ Object.assign(t,{name,area,duration,startDate,endDate,deadline:'',projectId:projectId||null,notes}); }
+      if(t){ Object.assign(t,{name,area,duration,startDate,endDate,continuous,deadline:'',projectId:projectId||null,notes}); }
       saveTasks(tasks);
       closeDeskModalForce();
       renderAll();
       return;
     } else {
-      addTask({ name, area, duration, startDate, endDate, projectId, notes });
+      addTask({ name, area, duration, startDate, endDate, continuous, projectId, notes });
       document.getElementById('desk-input').value='';
       document.getElementById('desk-capture-wrap').classList.remove('has-content');
     }
@@ -1745,6 +1754,8 @@
     document.getElementById('d-task-name').value = '';
     document.getElementById('d-task-start').value = '';
     document.getElementById('d-task-end').value = '';
+    document.getElementById('d-task-continuous').checked = false;
+    document.getElementById('task-date-fields').style.opacity = '';
     document.getElementById('d-task-notes').value = '';
     document.querySelectorAll('#desk-modal-domain-grid .domain-opt').forEach(o=>o.className='domain-opt');
     document.querySelectorAll('#d-overlay .modal-body .dur-chip').forEach(c=>c.classList.remove('on'));
