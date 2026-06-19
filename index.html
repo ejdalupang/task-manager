@@ -246,6 +246,7 @@
     .btn-danger:hover { background:#B04840; color:#fff; border-color:#B04840; }
     .field-sub-label { font:600 10px/1 'Inter',sans-serif; color:var(--muted); letter-spacing:.8px; text-transform:uppercase; margin-bottom:6px; }
     .continuous-badge { display:inline-flex; align-items:center; gap:4px; font:600 10px/1 'Inter',sans-serif; letter-spacing:.6px; text-transform:uppercase; background:#F0FDF4; color:#16A34A; border:1px solid #BBF7D0; border-radius:4px; padding:3px 7px; }
+    .proj-card:hover .task-dots-btn { opacity:1; }
     input[type="date"].text-input { cursor:pointer; }
     .task-dots-btn { background:none; border:none; cursor:pointer; width:28px; height:28px; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:2px; transition:all .15s; opacity:0; }
     .desk-task-row:hover .task-dots-btn, .task-card:hover .task-dots-btn { opacity:1; }
@@ -887,11 +888,11 @@
 </div>
 
 
-<!-- NEW PROJECT MODAL -->
+<!-- NEW / EDIT PROJECT MODAL -->
 <div class="desk-overlay" id="new-proj-overlay" onclick="if(event.target===this)closeNewProjModal()">
   <div class="desk-modal" style="max-width:480px;">
     <div class="modal-header">
-      <div><div class="modal-title">New project</div><div class="modal-sub">Group related tasks together</div></div>
+      <div><div class="modal-title" id="proj-modal-title">New project</div><div class="modal-sub" id="proj-modal-sub">Group related tasks together</div></div>
       <button class="modal-close" onclick="closeNewProjModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -921,8 +922,9 @@
       </div>
     </div>
     <div class="modal-footer">
+      <button class="btn btn-danger" id="proj-delete-btn" style="display:none;margin-right:auto;" onclick="deleteProject(_editingProjId)">Delete</button>
       <button class="btn btn-secondary" onclick="closeNewProjModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveNewProject()">Create project →</button>
+      <button class="btn btn-primary" id="proj-save-btn" onclick="saveNewProject()">Create project →</button>
     </div>
   </div>
 </div>
@@ -1317,7 +1319,7 @@
         ? p.tasks.map(t=>`<div class="proj-subtask ${t.done?'done':''}" onclick="toggleProjTask('${p.id}','${t.id}')"><div class="proj-subtask-dot">${t.done?'✓':''}</div><span>${escHtml(t.name)}</span></div>`).join('')
         : `<div style="font:400 12px/1 'Inter',sans-serif;color:var(--light);padding:4px 0;">No tasks yet — add some or try ✨ Suggest below</div>`;
       return `<div class="proj-card pc-${p.area}" data-pid="${p.id}">
-        <div class="proj-header"><div class="proj-name">${escHtml(p.name)}</div><div style="display:flex;gap:6px;align-items:center;">${p.continuous?'<span class="continuous-badge">● Ongoing</span>':((p.startDate||p.endDate)?`<span style="font:500 11px/1 Inter,sans-serif;color:var(--muted);">${p.startDate&&p.endDate?fmtDate(p.startDate)+' – '+fmtDate(p.endDate):(p.endDate?'Due '+fmtDate(p.endDate):fmtDate(p.startDate)+' →')}</span>`:'')}<span class="dbadge db-${p.area}">${aL(p.area)}</span></div></div>
+        <div class="proj-header"><div class="proj-name">${escHtml(p.name)}</div><div style="display:flex;gap:6px;align-items:center;">${p.continuous?'<span class="continuous-badge">● Ongoing</span>':((p.startDate||p.endDate)?`<span style="font:500 11px/1 Inter,sans-serif;color:var(--muted);">${p.startDate&&p.endDate?fmtDate(p.startDate)+' – '+fmtDate(p.endDate):(p.endDate?'Due '+fmtDate(p.endDate):fmtDate(p.startDate)+' →')}</span>`:'')}<span class="dbadge db-${p.area}">${aL(p.area)}</span><button class="task-dots-btn" onclick="editProject('${p.id}')" title="Edit"><span></span><span></span><span></span></button></div></div>
         <div class="proj-progress"><div class="proj-bar" style="width:${pct}%;background:var(--${p.area});"></div></div>
         <div class="proj-subtasks">${subtasksHtml}</div>
         <div class="proj-footer"><span class="proj-stat">${done}/${total} done</span><span class="proj-stat" style="font-weight:700;">${pct}%</span></div>
@@ -1860,8 +1862,11 @@
     if(task){ task.done = !task.done; saveProjects(projs); renderProjects(); }
   }
 
-  /* ── NEW PROJECT MODAL ── */
-  function openNewProjModal(){
+  /* ── PROJECT MODAL ── */
+  let _editingProjId = null;
+
+  function _resetProjModal(){
+    _editingProjId = null;
     document.getElementById('new-proj-name').value = '';
     document.getElementById('new-proj-desc').value = '';
     document.getElementById('new-proj-start').value = '';
@@ -1869,22 +1874,67 @@
     document.getElementById('new-proj-continuous').checked = false;
     document.getElementById('proj-date-fields').style.opacity = '';
     document.querySelectorAll('#new-proj-area-grid .domain-opt').forEach(o=>o.className='domain-opt');
+    document.getElementById('proj-modal-title').textContent = 'New project';
+    document.getElementById('proj-modal-sub').textContent = 'Group related tasks together';
+    document.getElementById('proj-save-btn').textContent = 'Create project →';
+    document.getElementById('proj-delete-btn').style.display = 'none';
+  }
+  function openNewProjModal(){
+    _resetProjModal();
     document.getElementById('new-proj-overlay').classList.add('open');
     setTimeout(()=>document.getElementById('new-proj-name').focus(), 150);
   }
+  function editProject(id){
+    const p = loadProjects().find(x=>x.id===id);
+    if(!p) return;
+    _resetProjModal();
+    _editingProjId = id;
+    document.getElementById('new-proj-name').value = p.name||'';
+    document.getElementById('new-proj-desc').value = p.desc||'';
+    document.getElementById('new-proj-start').value = p.startDate||'';
+    document.getElementById('new-proj-end').value = p.endDate||'';
+    document.getElementById('new-proj-continuous').checked = !!p.continuous;
+    document.getElementById('proj-date-fields').style.opacity = p.continuous?'.3':'';
+    document.querySelectorAll('#new-proj-area-grid .domain-opt').forEach(o=>{
+      o.className='domain-opt';
+      if(o.dataset.d===p.area) o.classList.add('on-'+p.area);
+    });
+    document.getElementById('proj-modal-title').textContent = 'Edit project';
+    document.getElementById('proj-modal-sub').textContent = 'Update the details';
+    document.getElementById('proj-save-btn').textContent = 'Update →';
+    document.getElementById('proj-delete-btn').style.display = 'inline-flex';
+    document.getElementById('new-proj-overlay').classList.add('open');
+    setTimeout(()=>document.getElementById('new-proj-name').focus(), 150);
+  }
+  function deleteProject(id){
+    if(!id) return;
+    saveProjects(loadProjects().filter(p=>p.id!==id));
+    closeNewProjModal();
+    renderAll();
+  }
   function closeNewProjModal(){
     document.getElementById('new-proj-overlay').classList.remove('open');
+    _editingProjId = null;
   }
   function saveNewProject(){
     const name = document.getElementById('new-proj-name').value.trim();
     if(!name){ document.getElementById('new-proj-name').focus(); return; }
     const areaEl = document.querySelector('#new-proj-area-grid .domain-opt[class*="on-"]');
     const area = areaEl ? areaEl.dataset.d : 'work';
-    const projs = loadProjects();
+    const desc = document.getElementById('new-proj-desc').value.trim();
     const continuous = document.getElementById('new-proj-continuous').checked;
     const startDate = document.getElementById('new-proj-start').value;
     const endDate = continuous ? '' : document.getElementById('new-proj-end').value;
-    projs.push({ id:'proj_'+Date.now(), name, area, continuous, startDate, endDate, notes:[], tasks:[] });
+    const projs = loadProjects();
+    if(_editingProjId){
+      const p = projs.find(x=>x.id===_editingProjId);
+      if(p){ Object.assign(p,{name,area,desc,continuous,startDate,endDate}); }
+      saveProjects(projs);
+      closeNewProjModal();
+      renderAll();
+      return;
+    }
+    projs.push({ id:'proj_'+Date.now(), name, area, desc, continuous, startDate, endDate, notes:[], tasks:[] });
     saveProjects(projs);
     renderAll();
     closeNewProjModal();
