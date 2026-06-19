@@ -164,10 +164,17 @@
     .wnav-btn { width:32px; height:32px; border-radius:50%; border:1.5px solid var(--border); background:var(--surface); display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:700; transition:all .15s; }
     .wnav-btn:hover { background:var(--bg); }
     .week-days { display:flex; gap:4px; }
-    .wday { flex:1; text-align:center; padding:8px 4px; border-radius:10px; cursor:pointer; transition:all .15s; }
+    .wday { text-align:center; padding:8px 6px; border-radius:10px; }
     .wday.today { background:var(--text); color:#fff; }
     .wday-lbl { font:700 10px/1 'Inter',sans-serif; opacity:.6; margin-bottom:4px; letter-spacing:.5px; }
     .wday-num { font:800 16px/1 'Inter',sans-serif; }
+    .week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; align-items:start; }
+    .week-col { display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .week-col-tasks { display:flex; flex-direction:column; gap:5px; }
+    .week-task-card { padding:7px 9px; border-radius:8px; cursor:pointer; border-left:3px solid transparent; transition:opacity .15s; }
+    .week-task-card:hover { opacity:.8; }
+    .week-task-name { font:600 11px/1.3 'Inter',sans-serif; word-break:break-word; }
+    .week-task-time { font:400 10px/1 'Inter',sans-serif; opacity:.7; margin-top:3px; }
     .week-body { padding:16px 20px; }
     .day-label { font:700 11px/1 'Inter',sans-serif; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; margin-top:20px; }
     .day-label:first-child { margin-top:0; }
@@ -781,10 +788,7 @@
         </label>
       </div>
       <div style="margin-bottom:20px;"><div class="field-label">Area</div><div class="domain-grid" id="desk-modal-domain-grid"></div></div>
-      <div class="modal-grid" style="margin-bottom:20px;">
-        <div><div class="field-label">How long?</div><div class="dur-chips"><div class="dur-chip" onclick="pickDur(this)">15m</div><div class="dur-chip" onclick="pickDur(this)">30m</div><div class="dur-chip" onclick="pickDur(this)">1 h</div><div class="dur-chip" onclick="pickDur(this)">1.5 h</div><div class="dur-chip" onclick="pickDur(this)">2 h</div></div></div>
-        <div><div class="field-label">Priority</div><div class="dur-chips"><div class="dur-chip" onclick="pickDur(this)">High</div><div class="dur-chip on" onclick="pickDur(this)">Normal</div><div class="dur-chip" onclick="pickDur(this)">Low</div></div></div>
-      </div>
+      <div style="margin-bottom:20px;"><div class="field-label">Priority</div><div class="dur-chips" style="margin-top:8px;"><div class="dur-chip" onclick="pickDur(this)">High</div><div class="dur-chip on" onclick="pickDur(this)">Normal</div><div class="dur-chip" onclick="pickDur(this)">Low</div></div></div>
       <div><div class="field-label">Project <span style="font-weight:400;opacity:.5;">— optional</span></div><div class="dur-chips" style="flex-wrap:wrap;" id="d-proj-chips"></div></div>
       <div style="margin-top:20px;"><div class="field-label">Notes <span style="font-weight:400;opacity:.5;">— optional</span></div><textarea class="text-input" id="d-task-notes" placeholder="Context, links, ideas to remember…" style="font-size:13px;min-height:64px;resize:vertical;margin-top:0;"></textarea></div>
     </div>
@@ -827,7 +831,6 @@
         <div class="prog-dot"    id="dg-pd2"></div>
         <div class="prog-dot"    id="dg-pd3"></div>
         <div class="prog-dot"    id="dg-pd4"></div>
-        <div class="prog-dot"    id="dg-pd5"></div>
       </div>
 
       <!-- Step 1: Task name -->
@@ -844,32 +847,26 @@
         <div class="domain-grid" id="desk-guided-domain-grid"></div>
       </div>
 
-      <!-- Step 3: Duration -->
+      <!-- Step 3: Timeline -->
       <div class="dg-step" id="dgs3">
-        <div class="g-q" style="font-size:20px;letter-spacing:-0.5px;">How long will it take?</div>
-        <div class="g-hint">A rough estimate is fine.</div>
-        <div class="dur-chips">
-          <div class="dur-chip" onclick="pickDur(this)">15m</div>
-          <div class="dur-chip" onclick="pickDur(this)">30m</div>
-          <div class="dur-chip" onclick="pickDur(this)">1 h</div>
-          <div class="dur-chip" onclick="pickDur(this)">1.5 h</div>
-          <div class="dur-chip" onclick="pickDur(this)">2 h</div>
-          <div class="dur-chip" onclick="pickDur(this)">3 h+</div>
-        </div>
-      </div>
-
-      <!-- Step 4: When -->
-      <div class="dg-step" id="dgs4">
         <div class="g-q" style="font-size:20px;letter-spacing:-0.5px;">What's the timeline?</div>
-        <div class="g-hint">Set a start and end date — or just an end date.</div>
-        <div style="display:flex;gap:12px;margin-top:16px;">
-          <div style="flex:1"><div class="field-sub-label">Start <span style="font-weight:400;opacity:.5;text-transform:none;letter-spacing:0;">— optional</span></div><input class="g-input" type="date" id="dg-task-start" style="margin-top:6px;"></div>
-          <div style="flex:1"><div class="field-sub-label">End</div><input class="g-input" type="date" id="dg-task-end" style="margin-top:6px;"></div>
+        <div class="g-hint">Set dates and times — start is optional.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
+          <div>
+            <div class="field-sub-label">Start <span style="font-weight:400;opacity:.5;text-transform:none;letter-spacing:0;">— optional</span></div>
+            <input class="g-input" type="date" id="dg-task-start" style="margin-top:6px;">
+            <input class="g-input" type="time" id="dg-task-start-time" style="margin-top:6px;">
+          </div>
+          <div>
+            <div class="field-sub-label">End</div>
+            <input class="g-input" type="date" id="dg-task-end" style="margin-top:6px;">
+            <input class="g-input" type="time" id="dg-task-end-time" style="margin-top:6px;">
+          </div>
         </div>
       </div>
 
-      <!-- Step 5: Notes + Project -->
-      <div class="dg-step" id="dgs5">
+      <!-- Step 4: Notes + Project -->
+      <div class="dg-step" id="dgs4">
         <div class="g-q" style="font-size:20px;letter-spacing:-0.5px;">Anything else?</div>
         <div class="g-hint">Add notes and optionally link to a project.</div>
         <div style="margin-bottom:18px;">
@@ -1134,74 +1131,60 @@
     const tasks = loadTasks().filter(t=>t.status!=='done');
     const areas = loadAreas();
 
-    // Title
     const [f,l] = [days[0],days[6]];
     const title = `${_MO[f.getMonth()]} ${f.getDate()} – ${f.getMonth()===l.getMonth()?'':_MO[l.getMonth()]+' '}${l.getDate()}`;
 
-    // Day header HTML
-    const dayHdHtml = days.map((d,i)=>{
-      const isTd = d.getTime()===now.getTime();
-      return `<div class="wday${isTd?' today':''}" style="flex:1;${isTd?'':'border:1px solid var(--border);'}border-radius:10px;padding:10px 8px;text-align:center;"><div class="wday-lbl">${_DN[i]}</div><div class="wday-num">${d.getDate()}</div></div>`;
-    }).join('');
-
-    // Body: group tasks by matching deadline day
-    let bodyHtml = '';
-    days.forEach((d,i)=>{
+    function getTasksForDay(d, i){
       const isTd = d.getTime()===now.getTime();
       const dayFullName = _FULL[i];
       const dStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      const dayTasks = tasks.filter(t=>{
-        if(t.endDate || t.startDate){
-          const s = t.startDate||t.endDate, e = t.endDate||t.startDate;
-          return dStr >= s && dStr <= e;
-        }
+      return tasks.filter(t=>{
+        if(t.endDate||t.startDate){ const s=t.startDate||t.endDate,e=t.endDate||t.startDate; return dStr>=s&&dStr<=e; }
         if(!t.deadline) return false;
-        const dl = t.deadline.toLowerCase();
-        if(isTd && (dl==='today'||dl.startsWith('today'))) return true;
-        if(dl.includes(dayFullName.toLowerCase())) return true;
-        return false;
+        const dl=t.deadline.toLowerCase();
+        if(isTd&&(dl==='today'||dl.startsWith('today'))) return true;
+        return dl.includes(dayFullName.toLowerCase());
       });
-      if(dayTasks.length){
-        bodyHtml += `<div class="day-label">${dayFullName}${isTd?' · Today':''}</div>`;
-        bodyHtml += dayTasks.map(t=>{
-          const a = areas.find(x=>x.id===t.area);
-          const col = a?a.color:'#888';
-          const {bg,fg}=areaColors(col);
-          return `<div class="tblock"><div class="event" style="border-left:3px solid ${col};background:${bg};color:${fg};padding:10px 14px;border-radius:8px;cursor:pointer;" onclick="toggleTask('${t.id}')"><div class="ev-name">${escHtml(t.name)}</div><div class="ev-time" style="font:400 11px/1 Inter,sans-serif;opacity:.7;margin-top:4px;">${escHtml(taskTimeline(t))}${t.duration?' · '+t.duration:''}</div></div></div>`;
-        }).join('');
-      }
-    });
-
-    // Fallback when no tasks match any day
-    if(!bodyHtml){
-      const unscheduled = tasks.filter(t=>!t.deadline);
-      if(!tasks.length){
-        bodyHtml = '<div class="today-empty" style="padding:40px 20px;text-align:center;">No tasks yet — add one to get started.</div>';
-      } else if(unscheduled.length){
-        bodyHtml = `<div class="day-label">Unscheduled tasks</div>`+unscheduled.map(t=>{
-          const a=areas.find(x=>x.id===t.area);const col=a?a.color:'#888';const {bg,fg}=areaColors(col);
-          return `<div class="tblock"><div class="event" style="border-left:3px solid ${col};background:${bg};color:${fg};padding:10px 14px;border-radius:8px;cursor:pointer;opacity:.7;" onclick="toggleTask('${t.id}')"><div class="ev-name">${escHtml(t.name)}</div><div class="ev-time" style="font:400 11px/1 Inter,sans-serif;margin-top:4px;">No date set</div></div></div>`;
-        }).join('');
-      } else {
-        bodyHtml = '<div class="today-empty" style="padding:40px 20px;text-align:center;">No tasks scheduled for this week.</div>';
-      }
     }
 
-    // Update desktop
-    const dTitle=document.getElementById('d-week-title');
-    if(dTitle) dTitle.textContent=title;
-    const dDays=document.getElementById('d-week-days');
-    if(dDays) dDays.innerHTML=dayHdHtml;
-    const dBody=document.getElementById('d-week-body');
-    if(dBody) dBody.innerHTML=bodyHtml;
+    function taskChip(t){
+      const a=areas.find(x=>x.id===t.area); const col=a?a.color:'#888'; const {bg,fg}=areaColors(col);
+      const tl=taskTimeline(t)||( t.continuous?'● Ongoing':'');
+      return `<div class="week-task-card" style="background:${bg};color:${fg};border-left-color:${col};" onclick="toggleTask('${t.id}')"><div class="week-task-name">${escHtml(t.name)}</div>${tl?`<div class="week-task-time">${escHtml(tl)}</div>`:''}</div>`;
+    }
 
-    // Update mobile
-    const mTitle=document.getElementById('mob-week-title');
-    if(mTitle) mTitle.textContent=title;
-    const mDays=document.getElementById('mob-week-days');
-    if(mDays) mDays.innerHTML=dayHdHtml;
-    const mBody=document.getElementById('mob-week-body');
-    if(mBody) mBody.innerHTML=bodyHtml;
+    // Desktop: 7-column grid
+    const gridHtml = '<div class="week-grid">'+days.map((d,i)=>{
+      const isTd=d.getTime()===now.getTime();
+      const dayTasks=getTasksForDay(d,i);
+      const hdr=`<div class="wday${isTd?' today':''}" style="${isTd?'':'border:1px solid var(--border);'}"><div class="wday-lbl">${_DN[i]}</div><div class="wday-num">${d.getDate()}</div></div>`;
+      const chips=dayTasks.length?`<div class="week-col-tasks">${dayTasks.map(taskChip).join('')}</div>`:'';
+      return `<div class="week-col">${hdr}${chips}</div>`;
+    }).join('')+'</div>';
+
+    // Mobile: stacked layout (7 columns too narrow)
+    let mobBody='';
+    days.forEach((d,i)=>{
+      const isTd=d.getTime()===now.getTime();
+      const dayTasks=getTasksForDay(d,i);
+      if(dayTasks.length){
+        mobBody+=`<div class="day-label">${_FULL[i]}${isTd?' · Today':''}</div>`;
+        mobBody+=dayTasks.map(taskChip).join('');
+      }
+    });
+    if(!mobBody){
+      const u=tasks.filter(t=>taskIsUnscheduled(t));
+      mobBody=tasks.length
+        ? (u.length?`<div class="day-label">Unscheduled</div>${u.map(taskChip).join('')}`:'<div class="today-empty" style="padding:40px 20px;text-align:center;">No tasks this week.</div>')
+        : '<div class="today-empty" style="padding:40px 20px;text-align:center;">No tasks yet.</div>';
+    }
+
+    const dTitle=document.getElementById('d-week-title'); if(dTitle) dTitle.textContent=title;
+    const dDays=document.getElementById('d-week-days'); if(dDays) dDays.innerHTML='';
+    const dBody=document.getElementById('d-week-body'); if(dBody) dBody.innerHTML=gridHtml;
+    const mTitle=document.getElementById('mob-week-title'); if(mTitle) mTitle.textContent=title;
+    const mDays=document.getElementById('mob-week-days'); if(mDays) mDays.innerHTML='';
+    const mBody=document.getElementById('mob-week-body'); if(mBody) mBody.innerHTML=mobBody;
   }
 
   function prevWeek(){ _weekOffset--; renderWeekView(); }
@@ -1679,10 +1662,12 @@
     const durEl = document.querySelector('#dgs3 .dur-chip.on');
     const duration = durEl ? durEl.textContent.trim() : '';
     const startDate = document.getElementById('dg-task-start')?.value||'';
+    const startTime = document.getElementById('dg-task-start-time')?.value||'';
     const endDate = document.getElementById('dg-task-end')?.value||'';
+    const endTime = document.getElementById('dg-task-end-time')?.value||'';
     const projectId = getSelectedProjId('dg-proj-chips');
     const notes = document.getElementById('dg-notes-input')?.value.trim()||'';
-    addTask({ name, area, duration, startDate, endDate, projectId, notes });
+    addTask({ name, area, startDate, startTime, endDate, endTime, projectId, notes });
     document.getElementById('desk-input').value = '';
     document.getElementById('desk-capture-wrap').classList.remove('has-content');
     closeDeskGuided();
@@ -1798,13 +1783,13 @@
     dgCur=step;
     document.querySelectorAll('.dg-step').forEach(s=>s.classList.remove('active'));
     document.getElementById('dgs'+step).classList.add('active');
-    for(let i=1;i<=5;i++) document.getElementById('dg-pd'+i).classList.toggle('on',i<=step);
-    document.getElementById('dg-sub').textContent='Step '+step+' of 5';
+    for(let i=1;i<=4;i++){ const el=document.getElementById('dg-pd'+i); if(el) el.classList.toggle('on',i<=step); }
+    document.getElementById('dg-sub').textContent='Step '+step+' of 4';
     document.getElementById('dg-back-btn').style.display=step>1?'inline-flex':'none';
-    document.getElementById('dg-next-btn').textContent=step===5?'Save task →':'Next →';
-    if(step===5) populateProjChips('dg-proj-chips');
+    document.getElementById('dg-next-btn').textContent=step===4?'Save task →':'Next →';
+    if(step===4) populateProjChips('dg-proj-chips');
   }
-  function dgNext(){ if(dgCur<5){ dgGoTo(dgCur+1); } else { dgSaveTask(); } }
+  function dgNext(){ if(dgCur<4){ dgGoTo(dgCur+1); } else { dgSaveTask(); } }
   function dgBack(){ if(dgCur>1) dgGoTo(dgCur-1); }
 
   /* ── TOGGLES ── */
